@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Responsive Quiz</title>
+    <style>
+      body {
+        font-family: "Courier New", Courier, monospace;
+        background: radial-gradient(
+          circle at center,
+          #2e151b,
+          #1c3334
+        ); /* Radial gradient background */
+        color: #ffffff; /* White text for contrast */
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+
+      .quiz-title {
+        font-size: 36px;
+        font-weight: bold;
+        color: #da7b93; /* Soft pink color for the title */
+        text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5); /* Darker shadow for better readability */
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 15px;
+        border-radius: 15px;
+        border: 3px solid #376e6f; /* Teal border for a contrasting look */
+        background: #2e151b; /* Dark burgundy background for the title */
+        letter-spacing: 2px; /* Increase spacing between letters for added style */
+        background: linear-gradient(
+          135deg,
+          #2e151b,
+          #2f4454
+        ); /* Gradient background */
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.6); /* Stronger shadow effect */
+      }
+
+      .quiz-container {
+        background: #2e151b; /* Dark burgundy for the container */
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Slightly lighter shadow */
+        padding: 20px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .question {
+        font-size: 18px;
+        color: #da7b93; /* Soft pink for question text */
+        margin-bottom: 15px;
+      }
+
+      .options {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .option {
+        background: #376e6f; /* Teal for options */
+        border: 1px solid #1c3334; /* Darker teal border */
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.3s; /* Smooth background and size transition */
+      }
+
+      .option:hover {
+        background: #2f4454; /* Darker teal for hover effect */
+        transform: scale(1.05); /* Slightly increase size on hover */
+      }
+
+      .selected {
+        background: #da7b93; /* Soft pink for selected option */
+        color: #2e151b; /* Dark burgundy text */
+      }
+
+      .feedback {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      .quiz-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      .quiz-footer button {
+        background-color: #376e6f; /* Teal for buttons */
+        border: none;
+        color: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.3s; /* Smooth background and size transition */
+      }
+
+      .quiz-footer button:hover {
+        background-color: #2f4454; /* Darker teal for hover effect */
+        transform: scale(1.05); /* Slightly increase size on hover */
+      }
+
+      .quiz-footer button:disabled {
+        background-color: #2f4454; /* Darker teal for disabled buttons */
+      }
+
+      .result-message {
+        font-size: 20px;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+
+      .retry-btn {
+        background-color: #376e6f; /* Teal for retry button */
+        border: none;
+        color: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background 0.3s, transform 0.3s; /* Smooth background and size transition */
+      }
+
+      .retry-btn:hover {
+        background-color: #2f4454; /* Darker teal for hover effect */
+        transform: scale(1.05); /* Slightly increase size on hover */
+      }
+
+      .timer {
+        font-size: 21px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #da7b93; /* Soft pink for timer */
+      }
+
+      .pass-message {
+        color: #da7b93; /* Soft pink for pass message */
+        animation: fadeInOut 3s ease-in-out;
+      }
+
+      .fail-message {
+        color: #da7b93; /* Soft pink for fail message */
+        animation: fadeInOut 3s ease-in-out;
+      }
+
+      @media (max-width: 600px) {
+        .quiz-container {
+          padding: 15px;
+        }
+        .question {
+          font-size: 16px;
+        }
+        .option {
+          padding: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="quiz-title">Quiz Time</div>
+    <div class="quiz-container">
+      <div class="quiz-header">
+        <div class="question"></div>
+        <div class="timer">Time left: <span id="time">10</span>s</div>
+      </div>
+      <div class="options"></div>
+      <div class="feedback"></div>
+      <div class="quiz-footer">
+        <button id="prevBtn" disabled>Previous</button>
+        <button id="nextBtn">Next</button>
+        <button id="submitBtn" style="display: none">Submit</button>
+      </div>
+      <div class="result-message"></div>
+      <button id="retryBtn" class="retry-btn" style="display: none">
+        Retry
+      </button>
+    </div>
+
+    <script>
+      // Updated quiz data with 10 questions
+      const quizData = [
+        {
+          question: "Which is the largest country in the world by area",
+          options: ["Russia", "China", "Canada", "USA"],
+          correct: 0,
+        },
+        {
+          question: "which gland in the human body regulated metabolism?",
+          options: [
+            "Stomach",
+            "Small Intestine",
+            "Large Intestine",
+            "Thyroid ",
+          ],
+          correct: 3,
+        },
+        {
+          question: "Author of the book 'Brave New World'?",
+          options: [
+            "Aldous Huxley",
+            "Harper Lee",
+            "George Orwell",
+            "Gregory Rabassa",
+          ],
+          correct: 0,
+        },
+        {
+          question: "What is the largest planet in our solar system?",
+          options: ["Earth", "Mars", "Jupiter", "Saturn"],
+          correct: 2,
+        },
+        {
+          question: "Which element has the chemical symbol 'O'?",
+          options: ["Gold", "Oxygen", "Silver", "Iron"],
+          correct: 1,
+        },
+        {
+          question: "What is the smallest prime number?",
+          options: ["1", "2", "3", "5"],
+          correct: 1,
+        },
+        {
+          question: "Which ocean is the largest?",
+          options: ["Atlantic", "Indian", "Arctic", "Pacific"],
+          correct: 3,
+        },
+        {
+          question: "What is the hardest natural substance on Earth?",
+          options: ["Gold", "Diamond", "Iron", "Platinum"],
+          correct: 1,
+        },
+        {
+          question: "In what year did the Titanic sink?",
+          options: ["1912", "1905", "1898", "1923"],
+          correct: 0,
+        },
+        {
+          question: "Who painted the Mona Lisa?",
+          options: [
+            "Leonardo da Vinci",
+            "Vincent van Gogh",
+            "Pablo Picasso",
+            "Claude Monet",
+          ],
+          correct: 0,
+        },
+      ]
+
+      let currentQuestion = 0
+      let score = 0
+      let selectedOptions = new Array(quizData.length).fill(null) // To keep track of selected options
+      let timerInterval
+      const questionEl = document.querySelector(".question")
+      const optionsEl = document.querySelector(".options")
+      const feedbackEl = document.querySelector(".feedback")
+      const prevBtn = document.getElementById("prevBtn")
+      const nextBtn = document.getElementById("nextBtn")
+      const submitBtn = document.getElementById("submitBtn")
+      const resultMessageEl = document.querySelector(".result-message")
+      const retryBtn = document.getElementById("retryBtn")
+      const timerEl = document.getElementById("time")
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+          ;[array[i], array[j]] = [array[j], array[i]]
+        }
+        return array
+      }
+
+      function startTimer() {
+        let timeLeft = 15
+        timerEl.textContent = timeLeft
+
+        timerInterval = setInterval(() => {
+          timeLeft--
+          timerEl.textContent = timeLeft
+
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval)
+            handleTimeout()
+          }
+        }, 1000)
+      }
+
+      function resetTimer() {
+        clearInterval(timerInterval)
+        startTimer()
+      }
+      function handleTimeout() {
+        feedbackEl.textContent = "Time's up!"
+        feedbackEl.style.color = "red"
+        // Move to the next question or end the quiz after 1 second
+        setTimeout(() => {
+          if (currentQuestion < quizData.length - 1) {
+            currentQuestion++
+            loadQuestion()
+          } else {
+            calculateScore()
+            displayResult()
+          }
+        }, 1000)
+      }
+
+      function loadQuestion() {
+        const questionData = quizData[currentQuestion]
+        questionEl.textContent = questionData.question
+        optionsEl.innerHTML = ""
+        feedbackEl.textContent = ""
+        questionData.options.forEach((option, index) => {
+          const optionEl = document.createElement("div")
+          optionEl.textContent = option
+          optionEl.classList.add("option")
+          if (selectedOptions[currentQuestion] === index) {
+            optionEl.classList.add("selected")
+          }
+          optionEl.addEventListener("click", () => selectOption(index))
+          optionsEl.appendChild(optionEl)
+        })
+        updateNavigation()
+        resetTimer() // Reset the timer for the new question
+      }
+
+      function selectOption(index) {
+        selectedOptions[currentQuestion] = index
+        const options = document.querySelectorAll(".option")
+        options.forEach((option, i) => {
+          option.classList.remove("selected")
+          if (i === index) option.classList.add("selected")
+        })
+        provideFeedback()
+        clearInterval(timerInterval) // Stop the timer once an option is selected
+      }
+
+      // function provideFeedback() {
+      //   const questionData = quizData[currentQuestion]
+      //   if (selectedOptions[currentQuestion] === questionData.correct) {
+      //     feedbackEl.textContent = "Correct!"
+      //     feedbackEl.style.color = "green"
+      //   } else {
+      //     feedbackEl.textContent = "Incorrect!"
+      //     feedbackEl.style.color = "red"
+      //   }
+      // }
+      function provideFeedback() {
+        const questionData = quizData[currentQuestion]
+        const options = document.querySelectorAll(".option")
+
+        if (selectedOptions[currentQuestion] === questionData.correct) {
+          feedbackEl.textContent = "Correct!"
+          feedbackEl.style.color = "green"
+        } else {
+          feedbackEl.textContent = `Incorrect! Correct answer: ${
+            questionData.options[questionData.correct]
+          }`
+          feedbackEl.style.color = "red"
+        }
+
+        // Highlight the correct option
+        options.forEach((option, i) => {
+          if (i === questionData.correct) {
+            option.style.border = "2px solid green" // Add a green border to the correct answer
+          } else if (i === selectedOptions[currentQuestion]) {
+            option.style.border = "2px solid red" // Add a red border to the selected (but incorrect) answer
+          }
+        })
+      }
+
+      function updateNavigation() {
+        prevBtn.disabled = currentQuestion === 0
+        nextBtn.style.display =
+          currentQuestion === quizData.length - 1 ? "none" : "inline"
+        submitBtn.style.display =
+          currentQuestion === quizData.length - 1 ? "inline" : "none"
+      }
+
+      prevBtn.addEventListener("click", () => {
+        if (currentQuestion > 0) {
+          currentQuestion--
+          loadQuestion()
+        }
+      })
+
+      nextBtn.addEventListener("click", () => {
+        if (currentQuestion < quizData.length - 1) {
+          currentQuestion++
+          loadQuestion()
+        }
+      })
+
+      submitBtn.addEventListener("click", () => {
+        calculateScore()
+        displayResult()
+      })
+
+      function calculateScore() {
+        score = quizData.reduce((acc, question, index) => {
+          return acc + (selectedOptions[index] === question.correct ? 1 : 0)
+        }, 0)
+      }
+
+      function displayResult() {
+        const resultText =
+          score >= 8
+            ? `Congratulations! You passed with a score of ${score} out of ${quizData.length}.`
+            : `Sorry! You did not pass. You scored ${score} out of ${quizData.length}.`
+
+        resultMessageEl.textContent = resultText
+        resultMessageEl.className = "result-message"
+        resultMessageEl.classList.add(
+          score >= 8 ? "pass-message" : "fail-message"
+        )
+
+        // Hide quiz content
+        document.querySelector(".quiz-header").style.display = "none"
+        document.querySelector(".options").style.display = "none"
+        document.querySelector(".quiz-footer").style.display = "none"
+
+        // Show the result message and retry button
+        resultMessageEl.style.display = "block"
+        retryBtn.style.display = "block"
+      }
+
+      function resetQuiz() {
+        currentQuestion = 0
+        score = 0
+        selectedOptions.fill(null)
+        shuffle(quizData) // Shuffle questions for the next attempt
+        loadQuestion()
+
+        // Show the quiz content
+        document.querySelector(".quiz-header").style.display = "block"
+        document.querySelector(".options").style.display = "block"
+        document.querySelector(".quiz-footer").style.display = "flex"
+
+        // Hide the result message and retry button
+        resultMessageEl.style.display = "none"
+        retryBtn.style.display = "none"
+      }
+
+      retryBtn.addEventListener("click", resetQuiz)
+
+      shuffle(quizData) // Shuffle questions initially
+      loadQuestion() // Initial load of the first question
+    </script>
+  </body>
+</html>
